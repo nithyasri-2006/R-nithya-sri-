@@ -1,0 +1,62 @@
+public class Transaction {
+    private String transactionId;
+    private String cardNumber;
+    private double amount;
+    private LocalDateTime timestamp;
+    private String location;
+
+    // Constructor, getters, and setters
+}
+public class TransactionAnalyzer {
+    private MockModel model;
+
+    public TransactionAnalyzer() {
+        model = new MockModel();
+    }
+
+    public List<Transaction> analyzeTransactions(List<Transaction> transactions) {
+        List<Transaction> fraudulentTransactions = new ArrayList<>();
+        for (Transaction transaction : transactions) {
+            if (isFraudulentByRules(transaction) || model.predict(transaction)) {
+                fraudulentTransactions.add(transaction);
+            }
+        }
+        return fraudulentTransactions;
+    }
+
+    private boolean isFraudulentByRules(Transaction transaction) {
+        return transaction.getAmount() > 1000;
+    }
+}
+public class MockModel {
+    private Random random;
+
+    public MockModel() {
+        random = new Random();
+    }
+
+    public boolean predict(Transaction transaction) {
+        return random.nextBoolean();
+    }
+}
+public class DataLoader {
+    public List<Transaction> loadTransactions(String filePath) {
+        List<Transaction> transactions = new ArrayList<>();
+        try (Reader reader = new FileReader(filePath)) {
+            Iterable<CSVRecord> records = CSVFormat.DEFAULT.withHeader().parse(reader);
+            for (CSVRecord record : records) {
+                Transaction transaction = new Transaction(
+                        record.get("transactionId"),
+                        record.get("cardNumber"),
+                        Double.parseDouble(record.get("amount")),
+                        LocalDateTime.parse(record.get("timestamp")),
+                        record.get("location")
+                );
+                transactions.add(transaction);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return transactions;
+    }
+}
